@@ -59,6 +59,12 @@ python practice01/llm_access.py
 
 # 交互式聊天脚本（支持流式输出和历史记录）
 python practice01/chat_interface.py
+
+# 带有工具调用功能的聊天脚本
+python practice02/chat_with_tools.py
+
+# 带有聊天记录总结和压缩功能的聊天脚本
+python practice03/chat_with_summary.py
 ```
 
 ## 脚本功能
@@ -73,6 +79,47 @@ python practice01/chat_interface.py
 - 支持流式输出（实时显示模型响应）
 - 自动管理聊天历史记录
 - 循环运行直到用户按 Ctrl+C 退出
+
+### chat_with_tools.py
+- 带有工具调用功能的交互式聊天脚本
+- 支持文件操作工具：list_files, rename_file, delete_file, create_file, read_file
+- 支持网络访问工具：curl
+- 示例使用：
+  ```json
+  {
+    "toolcall": {
+      "name": "curl",
+      "params": {
+        "url": "https://wttr.in/城市"
+      }
+    }
+  }
+  ```
+  例如，要获取青城山的天气预报：
+  ```json
+  {
+    "toolcall": {
+      "name": "curl",
+      "params": {
+        "url": "https://wttr.in/青城山"
+      }
+    }
+  }
+  ```
+
+### chat_with_summary.py
+- 带有聊天记录总结和压缩功能的交互式聊天脚本
+- 支持与chat_with_tools.py相同的工具调用功能
+- 自动检测聊天历史长度：
+  - 当聊天超过5轮时，自动触发总结
+  - 当聊天上下文长度超过3000字符时，自动触发总结
+- 总结策略：
+  - 对前70%左右的内容进行压缩总结
+  - 保留最后30%左右的内容原文
+- 总结过程：
+  - 调用LLM对历史聊天内容进行总结
+  - 将总结结果作为助手消息添加到聊天历史
+  - 保留最近的聊天内容以维持上下文连贯性
 
 ## 支持的模型部署
 
@@ -94,6 +141,14 @@ python practice01/chat_interface.py
 ├── practice01/
 │   ├── llm_access.py        # 基本 API 测试脚本
 │   └── chat_interface.py    # 交互式聊天脚本
+├── practice02/
+│   ├── chat_with_tools.py   # 带有工具调用功能的聊天脚本
+│   ├── tools.py             # 工具函数实现
+│   ├── tool_chat_client.py  # 工具客户端实现
+│   └── a/                   # 示例文件目录
+├── practice03/
+│   ├── chat_with_summary.py # 带有聊天记录总结和压缩功能的聊天脚本
+│   └── tools.py             # 工具函数实现
 ├── .env                     # 环境配置文件
 ├── .env.example             # 环境配置示例
 ├── .gitignore               # Git 忽略文件

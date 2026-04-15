@@ -135,10 +135,81 @@ def execute_tool_call(toolcall):
             }
         }
 
+def calculate_context_length(messages):
+    """计算聊天上下文的长度"""
+    length = 0
+    for message in messages:
+        if "content" in message:
+            length += len(message["content"])
+    return length
+
+def summarize_chat_history():
+    """总结聊天历史记录"""
+    global chat_history
+    
+    # 保留系统提示和最后60%的内容，确保有足够的上下文
+    system_message = chat_history[0]
+    total_messages = len(chat_history) - 1  # 减去系统提示
+    
+    if total_messages <= 1:
+        return
+    
+    # 计算要保留的消息数量，至少保留6条消息以维持上下文
+    keep_count = max(6, int(total_messages * 0.6))
+    keep_start = len(chat_history) - keep_count
+    
+    # 提取要保留的内容
+    keep_content = chat_history[keep_start:]  # 要保留的内容
+    
+    # 构建新的聊天历史（不添加总结消息，直接保留原始格式）
+    new_history = [system_message]
+    # 直接添加保留的内容，不添加总结消息
+    new_history.extend(keep_content)
+    
+    # 打印调试信息
+    print(f"\n=== 调试信息 ===")
+    print(f"原始聊天历史长度: {len(chat_history)}")
+    print(f"压缩后聊天历史长度: {len(new_history)}")
+    print(f"保留的消息数量: {len(keep_content)}")
+    print("================")
+    
+    # 打印压缩后的聊天历史内容，以便调试
+    print("\n=== 压缩后聊天历史 ===")
+    for i, msg in enumerate(new_history):
+        print(f"[{i}] {msg['role']}: {msg['content'][:100]}...")
+    print("================")
+    
+    # 更新聊天历史
+    chat_history = new_history
+    print("\n=== 聊天历史已总结和压缩 ===")
+
 def send_message(message):
     """发送消息到LLM并获取响应"""
+    # 打印调试信息
+    print(f"\n=== 发送消息前调试信息 ===")
+    print(f"用户输入: {message}")
+    print(f"当前聊天历史长度: {len(chat_history)}")
+    
+    # 检查是否需要总结聊天历史
+    # 聊天历史中系统提示算1条，然后是用户和助手的交替消息
+    # 所以实际对话轮数是 (len(chat_history) - 1) // 2
+    conversation_rounds = (len(chat_history) - 1) // 2
+    context_length = calculate_context_length(chat_history)
+    
+    print(f"当前对话轮数: {conversation_rounds}")
+    print(f"当前上下文长度: {context_length}")
+    
+    if conversation_rounds >= 5 or context_length >= 3000:
+        print("\n=== 检测到聊天历史过长，正在总结... ===")
+        summarize_chat_history()
+    
     # 添加用户消息到历史记录
     chat_history.append({"role": "user", "content": message})
+    
+    # 打印调试信息
+    print(f"\n=== 发送请求前调试信息 ===")
+    print(f"添加用户消息后聊天历史长度: {len(chat_history)}")
+    print(f"请求消息数量: {len(chat_history)}")
     
     # 构建请求数据
     request_data = {
@@ -148,6 +219,12 @@ def send_message(message):
         "max_tokens": MAX_TOKENS,
         "stream": True  # 启用流式输出
     }
+    
+    # 打印请求消息，以便调试
+    print("\n=== 请求消息 ===")
+    for i, msg in enumerate(chat_history):
+        print(f"[{i}] {msg['role']}: {msg['content'][:100]}...")
+    print("================")
     
     # 根据协议选择连接类型
     conn = None
@@ -190,6 +267,10 @@ def send_message(message):
                                 assistant_response += content
                     except json.JSONDecodeError:
                         pass
+            
+            # 打印调试信息
+            print(f"\n=== 响应后调试信息 ===")
+            print(f"助手响应: {assistant_response}")
             
             # 添加助手响应到历史记录
             chat_history.append({"role": "assistant", "content": assistant_response})
@@ -248,11 +329,12 @@ def send_message(message):
 
 def main():
     """主函数"""
-    print("=== LLM Chat Interface with Tools ===")
+    print("=== LLM Chat Interface with Summary ===")
     print(f"Connected to: {BASE_URL}")
     print(f"Model: {MODEL}")
     print("Type your message and press Enter. Press Ctrl+C to exit.")
-    print("You can ask me to perform file operations like listing files, creating files, etc.\n")
+    print("You can ask me to perform file operations like listing files, creating files, etc.")
+    print("Chat history will be summarized automatically when it exceeds 5 rounds or 3000 characters.\n")
     
     try:
         while True:
