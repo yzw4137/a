@@ -51,7 +51,7 @@ MAX_TOKENS=1000
 3. 进入 Developer > Local Server
 4. 启动服务器（Status 变为 Running）
 
-### 2. 运行聊天脚本
+### 运行聊天脚本
 
 ```bash
 # 基本测试脚本
@@ -65,6 +65,9 @@ python practice02/chat_with_tools.py
 
 # 带有聊天记录总结和压缩功能的聊天脚本
 python practice03/chat_with_summary.py
+
+# 带有AnythingLLM查询功能的聊天脚本
+python practice04/chat_with_summary.py
 ```
 
 ## 脚本功能
@@ -121,6 +124,41 @@ python practice03/chat_with_summary.py
   - 将总结结果作为助手消息添加到聊天历史
   - 保留最近的聊天内容以维持上下文连贯性
 
+### chat_with_keyinfo.py
+- 带有关键信息提取和聊天历史搜索功能的交互式聊天脚本
+- 支持与chat_with_tools.py相同的工具调用功能
+- 关键信息提取：
+  - 每5次聊天自动提取关键信息
+  - 按照5W规则（谁Who、做了什么事What、什么时候When、在何处Where、为什么要做这个事Why）提取
+  - 将提取的关键信息记录到当前项目下的chat-log\log.txt文件
+  - 自动创建目录和文件（如果不存在）
+- 聊天历史搜索：
+  - 当用户发送的信息用"/search"开头时触发
+  - 当用户表达了"查找聊天历史"的意思时触发
+  - 当LLM认为应该查找聊天历史时触发
+  - 使用search_chat_history工具进行搜索
+  - 结合log.txt文件内容和用户请求进行完整的LLM请求
+- 工具调用：
+  - 新增search_chat_history工具，用于查找聊天历史记录
+  - 参数：query (查询关键词)
+
+### practice04/chat_with_summary.py
+- 带有聊天记录总结和压缩功能的交互式聊天脚本
+- 支持与chat_with_tools.py相同的工具调用功能
+- 新增AnythingLLM查询功能：
+  - 当用户提到"文档仓库"、"文件仓库"、"仓库"时，自动触发
+  - 使用anythingllm_query工具查询AnythingLLM中的文档信息
+  - 参数：message (查询消息)
+- 环境配置：
+  - 需要在.env文件中添加AnythingLLM的API密钥和工作区信息：
+    ```
+    # AnythingLLM Configuration
+    ANYTHINGLLM_API_KEY=your_anythingllm_api_key_here
+    ANYTHINGLLM_WORKSPACE_SLUG=your_workspace_slug_here
+    ```
+- 示例使用：
+  当用户问"仓库中有关于项目规划的文档吗？"时，助手会自动调用anythingllm_query工具查询相关信息。
+
 ## 支持的模型部署
 
 - **LM Studio**：本地部署，默认地址 `http://localhost:1234/v1`
@@ -149,6 +187,9 @@ python practice03/chat_with_summary.py
 ├── practice03/
 │   ├── chat_with_summary.py # 带有聊天记录总结和压缩功能的聊天脚本
 │   └── tools.py             # 工具函数实现
+├── practice04/
+│   ├── chat_with_summary.py # 带有聊天记录总结和压缩功能的聊天脚本，新增AnythingLLM查询功能
+│   └── tools.py             # 工具函数实现，新增anythingllm_query工具
 ├── .env                     # 环境配置文件
 ├── .env.example             # 环境配置示例
 ├── .gitignore               # Git 忽略文件
