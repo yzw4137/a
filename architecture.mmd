@@ -1,0 +1,126 @@
+```mermaid
+flowchart TD
+    subgraph 用户层
+        A[用户自然语言请求]
+    end
+    
+    subgraph 理解层
+        B[LLM解析引擎]
+        C[智能决策模块]
+    end
+    
+    subgraph 执行层
+        D[工具调用引擎]
+        E[链式调用上下文]
+        F[自动计算验证]
+    end
+    
+    subgraph 工具层
+        G[文件操作工具]
+        H[网页获取工具]
+        I[搜索工具]
+        J[技能查询工具]
+        K[创建文件工具]
+    end
+    
+    subgraph 输出层
+        L[最终结果返回]
+    end
+    
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    D --> G
+    D --> H
+    D --> I
+    D --> J
+    D --> K
+    G --> E
+    H --> E
+    I --> E
+    J --> E
+    K --> E
+    E --> L
+    F --> L
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style L fill:#9f9,stroke:#333,stroke-width:2px
+    style E fill:#ff9,stroke:#333,stroke-width:2px
+```
+
+```mermaid
+flowchart LR
+    subgraph 核心组件
+        A[聊天界面]
+        B[LLM访问模块]
+        C[工具定义]
+        D[工具调用客户端]
+        E[链式调用上下文]
+        F[技能系统]
+    end
+    
+    subgraph 数据流
+        A --> B
+        B --> D
+        C --> D
+        D --> E
+        E --> F
+        F --> D
+        D --> B
+        B --> A
+    end
+    
+    style A fill:#6ab,stroke:#333,stroke-width:2px
+    style B fill:#a6b,stroke:#333,stroke-width:2px
+    style C fill:#ba6,stroke:#333,stroke-width:2px
+    style D fill:#6ba,stroke:#333,stroke-width:2px
+    style E fill:#b6a,stroke:#333,stroke-width:2px
+    style F fill:#ab6,stroke:#333,stroke-width:2px
+```
+
+```mermaid
+sequenceDiagram
+    participant 用户
+    participant LLM
+    participant 工具引擎
+    participant 上下文
+    participant 工具
+    
+    用户->>LLM: 自然语言请求
+    LLM->>LLM: 解析请求
+    LLM->>工具引擎: 工具调用决策
+    工具引擎->>上下文: 检查状态
+    上下文-->>工具引擎: 返回历史
+    工具引擎->>工具: 执行工具调用
+    工具-->>工具引擎: 返回结果
+    工具引擎->>上下文: 记录步骤
+    工具引擎->>LLM: 结果反馈
+    LLM->>LLM: 判断是否完成
+    alt 任务完成
+        LLM->>用户: 返回最终结果
+    else 需要继续
+        LLM->>工具引擎: 下一步工具调用
+    end
+```
+
+```mermaid
+flowchart TB
+    subgraph 链式调用流程
+        A[用户请求] --> B[LLM分析]
+        B --> C{需要调用工具?}
+        C -->|是| D[执行工具调用]
+        D --> E[记录到上下文]
+        E --> F[更新迭代次数]
+        F --> G{达到最大迭代?}
+        G -->|否| B
+        G -->|是| H[返回错误]
+        C -->|否| I[验证计算]
+        I --> J[返回最终结果]
+    end
+    
+    style A fill:#f9f,stroke:#333
+    style J fill:#9f9,stroke:#333
+    style H fill:#f99,stroke:#333
+```
